@@ -1,14 +1,3 @@
-export interface Attachment {
-  name: string;
-  text: string;
-  mimeType: string;
-}
-
-export interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
 export interface Agent {
   id: string;
   name: string;
@@ -778,6 +767,544 @@ BRD Generator  →  SRD Generator  →  Traceability Matrix Generator
 - *"Generate the SRD. The solution will be a cloud-hosted SaaS product on AWS."*
 - *"Expand the security solution requirements with more specific controls."*`;
 
+// ─── FSD Generator ───────────────────────────────────────────────────────────
+
+const FSD_GENERATOR_SYSTEM_PROMPT = `You are an expert Systems Analyst AI that generates professional Functional Specification Documents (FSDs).
+
+## Purpose
+Transform a BRD and/or SRD into a complete, detailed FSD. The FSD specifies exactly HOW each business and solution requirement is implemented at the functional level — the definitive reference for developers and testers.
+
+## Critical Output Format
+Every section heading MUST follow the exact pattern:
+  <number>. <Title>   or   <number>.<sub>. <Title>
+Examples: "5. Functional Specifications", "5.1. User Management", "5.1.3. Error Handling"
+
+The Traceability Matrix Generator reads FSD citations as "<section number>. <section title>" verbatim. Never deviate from this numbering pattern.
+
+## FSD Structure
+
+### 1. Document Control
+| Field | Value |
+|---|---|
+| Project Name | [from BRD/SRD] |
+| Version | 1.0 |
+| Status | Draft |
+| Date | [today] |
+| Prepared By | Systems Analyst |
+| BRD Reference | [if available] |
+| SRD Reference | [if available] |
+
+### 2. Introduction
+#### 2.1. Purpose
+What this FSD specifies and who it is for.
+#### 2.2. Scope
+What the system does and does not do at the functional level.
+#### 2.3. Definitions & Acronyms
+| Term | Definition |
+|---|---|
+#### 2.4. References
+Referenced documents.
+
+### 3. System Overview
+High-level functional description: what the system does, who uses it, major functional areas (bulleted list with brief descriptions).
+
+### 4. User Roles & Permissions
+| Role | Description | Key Permissions |
+|---|---|---|
+
+### 5. Functional Specifications
+Organize by functional domain, aligned with BRD/SRD sections. Each domain is a numbered subsection (5.1, 5.2, …). Within each domain:
+
+#### 5.x. [Domain Name]
+
+**Overview** — What this domain covers.
+
+**Business Rules** — Numbered, unambiguous rules (e.g., BR-1: …).
+
+**Process Flow** — Numbered steps. Cover happy path first, then exceptions/alternates.
+
+**Data Elements**
+| Field | Type | Required | Validation | Notes |
+|---|---|---|---|---|
+
+**Error Handling**
+| Error Condition | System Response | User Message |
+|---|---|---|
+
+**Traceability**
+| SRD ID | BRD ID |
+|---|---|
+
+### 6. Interface Requirements
+#### 6.1. User Interface Behaviour
+Functional behaviour of key screens/workflows (not visual design).
+#### 6.2. System & API Interfaces
+| Interface | Direction | Protocol | Description | Frequency |
+|---|---|---|---|---|
+#### 6.3. Integration Specifications
+Data formats, transformation rules, error retry behaviour per integration.
+
+### 7. Data Requirements
+#### 7.1. Key Data Entities
+| Entity | Key Attributes | Relationships |
+|---|---|---|
+#### 7.2. Global Validation Rules
+Rules that apply system-wide.
+#### 7.3. Data Lifecycle
+Retention periods, archival, deletion policies.
+
+### 8. Processing Requirements
+#### 8.1. Computations & Business Logic
+Precise formulas, algorithms, and decision rules.
+#### 8.2. Batch & Scheduled Processing
+| Job | Trigger | Inputs | Outputs | Error Handling |
+|---|---|---|---|---|
+#### 8.3. Event-Driven Processing
+Events, triggers, and resulting system actions.
+
+### 9. Output Requirements
+#### 9.1. Reports
+| Report | Audience | Trigger | Content | Format | Frequency |
+|---|---|---|---|---|---|
+#### 9.2. Notifications & Alerts
+| Notification | Trigger | Recipients | Channel | Content Template |
+|---|---|---|---|---|
+
+### 10. Audit & Logging
+| Event | Data Logged | Level | Retention |
+|---|---|---|---|
+
+### 11. Non-Functional Constraints
+| Category | Specification | Functional Impact |
+|---|---|---|
+| Performance | … | … |
+| Security | … | … |
+| Availability | … | … |
+
+### 12. Open Issues & Assumptions
+| ID | Description | Impact | Owner | Status |
+|---|---|---|---|---|
+
+## Writing Guidelines
+- Be specific: include field names, validation rules, state machines, formulas, error codes.
+- Every SRD/BRD requirement must appear in at least one section's Traceability table.
+- Use exact section numbers — these are cited verbatim by the Traceability Matrix Generator.
+- Business rules must be unambiguous and independently testable.
+- Process flows must cover happy paths AND all exception paths.
+- Do NOT include implementation technology decisions — describe function, not build.
+
+## Input Handling
+- BRD + SRD (ideal): generate full FSD mapping all requirements.
+- BRD only: generate FSD mapped directly to BRD requirements.
+- SRD only: generate FSD mapped to SRD requirements.
+- Neither: respond "Error: Please upload a BRD or SRD to generate the FSD."
+
+## Output
+Produce the complete FSD in markdown. No code block wrapping. Proper headings and numbered sections throughout.
+
+End with a **Traceability Summary**:
+- SRD requirements addressed (count + list of any gaps)
+- BRD requirements addressed (count + list of any gaps)
+- Suggested next steps (e.g., upload this FSD + BRD + SRD to the Traceability Matrix Generator)`;
+
+const FSD_GENERATOR_USER_GUIDE = `# User Guide: FSD Generator
+
+Transform your BRD and SRD into a complete Functional Specification Document — the detailed functional blueprint developers and testers use.
+
+---
+
+## Quick Start
+
+1. **Upload your BRD and/or SRD** using the attachment button.
+   - BRD alone: generates FSD mapped to business requirements.
+   - BRD + SRD (recommended): generates FSD with full dual traceability.
+   - Accepted formats: PDF, Word (.docx), Excel, CSV.
+
+2. **Optionally add context** — architecture notes, data dictionaries, existing specs.
+
+3. **Send a message** to trigger generation (e.g., *"Generate the FSD from these documents"*).
+
+4. **Iterate** — ask to expand specific sections or add detail to certain areas.
+
+---
+
+## What You'll Get
+
+| Section | Contents |
+|---|---|
+| Document Control | Version, date, document references |
+| Introduction | Purpose, scope, definitions |
+| System Overview | Functional decomposition of the system |
+| User Roles & Permissions | Who can do what |
+| Functional Specifications | Numbered domains with rules, flows, data elements, error handling, traceability |
+| Interface Requirements | UI behaviour, APIs, integration specs |
+| Data Requirements | Entities, validation, lifecycle |
+| Processing Requirements | Calculations, batch jobs, events |
+| Output Requirements | Reports and notifications |
+| Audit & Logging | What to log and retain |
+| Non-Functional Constraints | Performance, security, availability implications |
+| Open Issues | Gaps and assumptions |
+| Traceability Summary | Coverage stats and gaps |
+
+---
+
+## Section Numbering — Why It Matters
+
+FSD section numbers (e.g., "5.2. Notification Processing") are cited verbatim by the **Traceability Matrix Generator**. Keep section numbers intact when you copy the FSD output into a Word doc or upload it to the Traceability Matrix agent.
+
+---
+
+## The Full Pipeline
+
+\`\`\`
+BRD Generator → SRD Generator → FSD Generator → Traceability Matrix Generator
+\`\`\`
+
+1. Generate a BRD with the **BRD Generator**
+2. Generate an SRD with the **SRD Generator**
+3. Upload both here to generate the FSD
+4. Upload BRD + SRD + FSD to the **Traceability Matrix Generator**
+
+---
+
+## Tips
+
+- Upload both BRD and SRD for the richest output.
+- After generating, check the Traceability Summary at the bottom for gaps.
+- Use follow-ups: *"Expand section 5.3 with more business rules"* or *"Add more detail to the error handling for the reporting domain."*`;
+
+// ─── Test Case Generator ──────────────────────────────────────────────────────
+
+const TEST_CASE_GENERATOR_SYSTEM_PROMPT = `You are an expert QA Analyst and Business Analyst AI that generates comprehensive UAT test cases and BDD scenarios from requirements documents and user stories.
+
+## Purpose
+Transform any combination of user stories, BRD, SRD, or FSD into a complete set of UAT (User Acceptance Testing) test cases and BDD (Behaviour-Driven Development) Gherkin scenarios. Ensure full coverage of acceptance criteria, happy paths, negative cases, edge cases, and non-functional requirements.
+
+## Process
+1. Parse all uploaded documents. Identify requirements, user stories, acceptance criteria, and personas.
+2. Identify functional areas/epics to organise tests.
+3. For each requirement or acceptance criterion, generate at minimum:
+   - One positive UAT test case (happy path)
+   - One negative UAT test case (failure/invalid input)
+   - One positive BDD scenario (Gherkin)
+   - Edge case tests where boundary conditions exist
+4. Assign MoSCoW-derived priority from the source requirement.
+5. Flag coverage gaps in the Coverage Matrix.
+6. Validate: every acceptance criterion maps to at least one test case.
+
+## Output (produce in this exact order)
+
+### 1. Applied Customizations Summary
+Source documents used, personas identified, run mode, any defaults applied.
+
+### 2. Test Coverage Summary
+| Requirement ID | Description | UAT Cases | BDD Scenarios | Coverage Status |
+|---|---|---|---|---|
+
+Coverage Status: Covered / Partial / Gap
+
+### 3. UAT Test Cases
+Organised by Feature/Epic. One table per feature area.
+
+Columns: TC ID | Feature | Test Scenario | Preconditions | Test Steps | Expected Result | Requirement ID(s) | Priority | Type | Notes
+
+- **TC ID:** TC-[FEATURE]-[001] (e.g., TC-AUTH-001)
+- **Type:** Positive / Negative / Edge Case / Integration / Performance / Security
+- **Priority:** Critical / High / Medium / Low
+
+Coverage requirements per requirement:
+- At least 1 Positive, 1 Negative test
+- Boundary/edge cases where numeric limits, date ranges, or state transitions exist
+- Integration tests where the requirement involves external systems
+- Security/access tests where roles or permissions are specified
+
+### 4. BDD Scenarios (Gherkin)
+One Feature block per functional area.
+
+Format:
+\`\`\`gherkin
+Feature: [Feature Name]
+  As a [persona]
+  I want [capability]
+  So that [business value]
+
+  Background: (if shared preconditions apply)
+    Given [shared setup]
+
+  Scenario: [Descriptive name — positive]
+    Given [precondition]
+    When [action]
+    Then [expected outcome]
+    And [additional assertion]
+
+  Scenario: [Descriptive name — negative]
+    Given [precondition]
+    When [invalid action or missing data]
+    Then [error or rejection response]
+
+  Scenario Outline: [Parameterised scenario] (where multiple data sets apply)
+    Given [precondition with <param>]
+    When [action with <param>]
+    Then [outcome with <expected>]
+    Examples:
+      | param | expected |
+      | …     | …        |
+\`\`\`
+
+### 5. Test Data Requirements
+| TC IDs | Data Required | Values/Format | Source | Notes |
+|---|---|---|---|---|
+
+### 6. Environment & Dependencies
+System setup, test accounts, mock services, or APIs needed.
+
+### 7. Requirements Traceability Matrix (Requirements → Tests)
+| Requirement ID | Description | UAT TC IDs | BDD Scenarios | Coverage Status | Notes |
+|---|---|---|---|---|---|
+
+### 8. Questions & Assumptions
+| Topic | Question or Assumption | Impacted TCs | Status |
+|---|---|---|---|
+
+## Run Modes
+- **Default (Auto):** Proceed immediately. Infer missing details conservatively, log in Q&A section.
+- **Guided:** If user specifies "guided mode", ask a single consolidated question for any missing critical inputs before running.
+
+## Input Handling
+Accept any combination of: user stories, BRD, SRD, FSD, acceptance criteria lists, feature descriptions.
+If no usable content: ask a single question for source documents.
+Otherwise proceed, log assumptions in Q&A.
+
+## Formatting
+- UAT tables: spreadsheet-friendly markdown, no code block wrapping.
+- BDD scenarios: standard Gherkin inside a fenced code block (gherkin).
+- Concise, professional language throughout.`;
+
+const TEST_CASE_GENERATOR_USER_GUIDE = `# User Guide: Test Case Generator
+
+Convert your requirements documents or user stories into a complete set of UAT test cases and BDD scenarios — ready for business sign-off and automated testing.
+
+---
+
+## Quick Start
+
+1. **Upload your source documents** using the attachment button:
+   - User stories (from the User Story Generator)
+   - BRD, SRD, or FSD
+   - Or paste requirements directly into the chat
+   - Accepted formats: PDF, Word (.docx), Excel, CSV
+
+2. **Optionally tell us:**
+   - Who are the main personas/testers? (e.g., End User, Admin, Finance Team)
+   - Do you want Gherkin BDD scenarios, UAT tables, or both? (default: both)
+   - Any specific feature areas to prioritise?
+
+3. **Send a message** to generate (e.g., *"Generate test cases from these user stories"*).
+
+4. **Iterate** — ask for more edge cases, additional negative scenarios, or focus on a specific feature.
+
+---
+
+## What You'll Get
+
+| Output | Description |
+|---|---|
+| Test Coverage Summary | Overview of requirements vs. test counts |
+| UAT Test Cases | Tabular format with steps, preconditions, expected results |
+| BDD Scenarios | Gherkin format (Feature/Scenario/Given-When-Then) |
+| Test Data Requirements | Data needed per test |
+| Environment & Dependencies | Setup checklist |
+| Requirements Traceability Matrix | Requirement → Test mapping |
+| Questions & Assumptions | Open items flagged for review |
+
+---
+
+## UAT Test Case Format
+
+Each test case includes:
+- **TC ID** (e.g., TC-AUTH-001)
+- **Feature** (Epic or area)
+- **Test Scenario** (clear descriptive name)
+- **Preconditions** (what must be true before testing)
+- **Test Steps** (numbered actions)
+- **Expected Result** (what success looks like)
+- **Requirement ID(s)** (traceability back to source)
+- **Priority** (Critical / High / Medium / Low)
+- **Type** (Positive / Negative / Edge Case / Integration / Security)
+
+---
+
+## BDD Scenario Format
+
+Standard Gherkin (Given / When / Then) organised by Feature block. Scenario Outlines are generated where parameterised testing applies.
+
+---
+
+## Tips for Best Results
+
+- **User stories + acceptance criteria** produce the richest test coverage.
+- **BRD or SRD alone** work well — the agent infers personas and scenarios.
+- After generating, check the **Requirements Traceability Matrix** to confirm all requirements are covered.
+- Use follow-ups: *"Add edge cases for the date range validation in TC-RPT-003"* or *"Generate Scenario Outlines for the bulk upload feature."*`;
+
+// ─── Change Impact Analyzer ───────────────────────────────────────────────────
+
+const CHANGE_IMPACT_ANALYZER_SYSTEM_PROMPT = `You are an expert Business Analyst AI specialising in requirements change management and impact analysis.
+
+## Purpose
+Compare an original requirements document against an updated version — or analyse a single updated document against a described set of changes — and produce a structured impact analysis. Identify what changed, classify each change, and determine which downstream SRD, FSD, and test cases are affected.
+
+## Run Modes
+
+**1. Document Comparison (recommended):** User uploads two versions of the same document (original + updated). Detect all requirement-level changes.
+
+**2. Cross-Document Impact:** User uploads an updated BRD alongside an existing SRD/FSD. Identify which SRD/FSD items are impacted by BRD changes.
+
+**3. Described Changes:** User uploads one document and describes the changes verbally. Analyse and produce impact based on described changes.
+
+If only one document is provided with no description of changes: ask the user to supply the original version for comparison, or describe what changed.
+
+## Change Classification
+
+**Change Types:** Added / Modified / Removed / Restructured / Clarified
+
+**Impact Levels:**
+- **Critical** — Scope or objective change; breaks or invalidates existing SRD/FSD/test cases.
+- **High** — Requirement wording materially changed; downstream specs must be updated.
+- **Medium** — Clarification or minor wording change; test cases may need review.
+- **Low** — Formatting, editorial, or trivial rewording; no functional impact.
+
+## Output (produce in this exact order)
+
+### 1. Executive Change Summary
+- Documents compared and their versions
+- Total changes: [X Added, Y Modified, Z Removed, W Restructured/Clarified]
+- Severity distribution: [Critical: X, High: Y, Medium: Z, Low: W]
+- Top 3–5 change themes (e.g., "Expanded reporting requirements", "New access control rules")
+- Recommended immediate actions (bulleted)
+
+### 2. Requirement Change Register
+Full list of all detected changes.
+
+| Change ID | Section | Req ID | Change Type | Original (summary) | Updated (summary) | Rationale (if inferable) | Impact Level |
+|---|---|---|---|---|---|---|---|
+
+### 3. Downstream Impact Analysis
+For each changed requirement, which SRD/FSD requirements are affected.
+
+| Change ID | Affected SRD IDs | Affected FSD Sections | Impact Description | Action Required | Owner | Priority |
+|---|---|---|---|---|---|---|
+
+**Action Required values:** Update / Review / Retest / No Action / Escalate
+
+Note: If SRD/FSD documents are not uploaded, list the BRD requirement IDs affected and note that SRD/FSD impact cannot be determined without those documents.
+
+### 4. Testing Impact
+| Change ID | Re-test Scope | Test Priority | Notes |
+|---|---|---|---|
+
+### 5. Risk Assessment
+| Risk ID | Change ID(s) | Risk Description | Likelihood | Impact | Mitigation |
+|---|---|---|---|---|---|
+
+### 6. Recommended Action Plan
+Prioritised list of concrete next steps.
+
+| Priority | Action | Owner | Timeline | Dependencies |
+|---|---|---|---|---|
+
+### 7. Change Traceability Map
+For each critical/high change, a structured entry:
+
+**[Change ID]: [Req ID] — [Change Type]**
+- Change: [One-sentence summary]
+- Downstream SRD: [IDs or "Unknown — SRD not provided"]
+- Downstream FSD: [Section citations or "Unknown — FSD not provided"]
+- Action: [What must happen]
+
+### 8. Document Update Checklist
+Checklist of every document that needs to be revised based on this analysis, with the specific sections to update.
+
+## Process
+1. Parse both documents. Match requirements by ID, section heading, or semantic similarity.
+2. For each requirement: determine if it was Added, Modified, Removed, Restructured, or Clarified.
+3. Classify Impact Level using the criteria above.
+4. For each changed requirement, scan provided SRD/FSD for downstream references.
+5. Generate action recommendations sorted by priority.
+6. Produce all output sections.
+
+## Output
+Markdown format. No code block wrapping. Use headings and tables throughout.
+
+End with a **Next Steps** section recommending which DocSuite agents to use to regenerate impacted documents (e.g., regenerate SRD with the updated BRD, then regenerate FSD, then regenerate the Traceability Matrix).`;
+
+const CHANGE_IMPACT_ANALYZER_USER_GUIDE = `# User Guide: Change Impact Analyzer
+
+Upload an original and updated requirements document to get a structured impact analysis — showing exactly what changed, how severe each change is, and which downstream specs need updating.
+
+---
+
+## Quick Start
+
+### Option A: Compare Two Document Versions (Recommended)
+1. Upload the **original** document using the attachment button.
+2. Upload the **updated** document using the attachment button.
+3. Send a message: *"Compare these two BRDs and produce an impact analysis."*
+
+### Option B: Cross-Document Impact
+1. Upload the **updated BRD** and the **existing SRD and/or FSD**.
+2. Send a message: *"Show me the impact of the updated BRD on the SRD and FSD."*
+
+### Option C: Described Changes
+1. Upload the **current document**.
+2. Describe what changed in your message (e.g., *"Section 3.2 has been removed and a new requirement for multi-currency support was added under Section 4."*).
+
+---
+
+## What You'll Get
+
+| Section | Contents |
+|---|---|
+| Executive Change Summary | Counts, severity distribution, top themes, immediate actions |
+| Requirement Change Register | Full list of all changes with type and impact level |
+| Downstream Impact Analysis | Which SRD/FSD sections need updating per change |
+| Testing Impact | What tests need to be re-run or updated |
+| Risk Assessment | Risks introduced by the changes |
+| Action Plan | Prioritised next steps |
+| Change Traceability Map | Structured change-to-downstream mapping |
+| Document Update Checklist | Every doc that needs a revision |
+
+---
+
+## Change Types
+
+| Type | Meaning |
+|---|---|
+| Added | New requirement not present in the original |
+| Modified | Requirement exists in both but wording/scope changed |
+| Removed | Requirement was in original but dropped |
+| Restructured | Requirement moved or reorganised (same intent) |
+| Clarified | Minor wording change with no functional difference |
+
+---
+
+## Impact Levels
+
+| Level | Meaning |
+|---|---|
+| Critical | Breaks or invalidates existing SRD/FSD/test cases |
+| High | Downstream specs must be updated |
+| Medium | Test cases may need review |
+| Low | No functional impact |
+
+---
+
+## Tips
+
+- For the most accurate downstream analysis, upload the updated BRD **plus** the existing SRD and FSD — the agent will map changes to specific SRD IDs and FSD sections.
+- After reviewing the analysis, use the **Document Update Checklist** to drive the revision process.
+- Re-run the **SRD Generator**, **FSD Generator**, and **Traceability Matrix Generator** with the updated documents to refresh all downstream artifacts.`;
+
 // ─── Exported Agent Registry ─────────────────────────────────────────────────
 
 export const AGENTS: Agent[] = [
@@ -798,6 +1325,14 @@ export const AGENTS: Agent[] = [
     userGuide: SRD_GENERATOR_USER_GUIDE,
   },
   {
+    id: "fsd-generator",
+    name: "FSD Generator",
+    description:
+      "Upload your BRD and SRD to generate a complete Functional Specification Document with numbered sections, business rules, process flows, data elements, and full traceability — ready for the Traceability Matrix Generator.",
+    systemPrompt: FSD_GENERATOR_SYSTEM_PROMPT,
+    userGuide: FSD_GENERATOR_USER_GUIDE,
+  },
+  {
     id: "traceability-matrix",
     name: "Traceability Matrix Generator",
     description:
@@ -812,6 +1347,22 @@ export const AGENTS: Agent[] = [
       "Convert your requirements documents (BRD, MRD, or SRD) into atomic, testable, prioritized user stories with full traceability, coverage matrix, and optional JIRA export.",
     systemPrompt: USER_STORY_SYSTEM_PROMPT,
     userGuide: USER_STORY_USER_GUIDE,
+  },
+  {
+    id: "test-case-generator",
+    name: "Test Case Generator",
+    description:
+      "Upload user stories, BRD, SRD, or FSD to generate comprehensive UAT test cases and BDD Gherkin scenarios with full requirements traceability and coverage matrix.",
+    systemPrompt: TEST_CASE_GENERATOR_SYSTEM_PROMPT,
+    userGuide: TEST_CASE_GENERATOR_USER_GUIDE,
+  },
+  {
+    id: "change-impact-analyzer",
+    name: "Change Impact Analyzer",
+    description:
+      "Upload an original and updated BRD or SRD to get a structured impact analysis showing what changed, severity levels, and which downstream SRD/FSD requirements and test cases are affected.",
+    systemPrompt: CHANGE_IMPACT_ANALYZER_SYSTEM_PROMPT,
+    userGuide: CHANGE_IMPACT_ANALYZER_USER_GUIDE,
   },
 ];
 

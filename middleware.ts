@@ -1,14 +1,15 @@
-import { auth } from "@/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "@/auth.config";
 import { NextResponse } from "next/server";
+
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
-  // Allow login page always
-  if (pathname === "/login") return NextResponse.next();
+  if (pathname === "/login" || pathname === "/api/register") return NextResponse.next();
 
-  // Redirect unauthenticated users to login
   if (!isLoggedIn) {
     const loginUrl = new URL("/login", req.nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", pathname);

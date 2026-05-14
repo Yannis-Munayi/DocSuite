@@ -28,6 +28,12 @@ interface IncomingMessage {
 }
 
 export async function POST(req: NextRequest) {
+  const { auth } = await import("@/auth");
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const { agentId, messages, attachments } = body as {

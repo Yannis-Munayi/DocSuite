@@ -29,7 +29,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <p className="mt-12 text-center text-xs text-gray-400">
-          Powered by Claude · Upload PDF, Word, Excel, or CSV files
+          Powered by Gemini · Upload PDF, Word, Excel, or CSV files
         </p>
       </div>
     </div>

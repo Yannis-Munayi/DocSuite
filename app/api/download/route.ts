@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": mimeType,
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
       "Content-Length": String(buffer.byteLength),
     },
   });

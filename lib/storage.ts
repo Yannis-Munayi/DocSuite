@@ -3,7 +3,6 @@ import {
   writeFileSync,
   existsSync,
   mkdirSync,
-  copyFileSync,
   unlinkSync,
 } from "fs";
 import { join, extname } from "path";

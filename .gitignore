@@ -16,3 +16,9 @@ out/
 .DS_Store
 *.pem
 npm-debug.log*
+
+# Local storage (user data & generated files)
+storage/
+
+# TypeScript build cache
+tsconfig.tsbuildinfo

@@ -52,11 +52,12 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username.trim(), password }),
       });
-      const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Registration failed.");
+        const data = await res.json().catch(() => ({}));
+        setError((data as { error?: string }).error ?? "Registration failed.");
         return;
       }
+      const data = await res.json();
       // Auto-login after register
       const result = await signIn("credentials", {
         username: username.trim(),
